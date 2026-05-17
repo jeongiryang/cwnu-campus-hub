@@ -34,9 +34,9 @@ const formatDateTime = (langCode, is12Hour) => {
 };
 
 function App() {
-  const isOff = window.location.hostname !== 'localhost' && false ;
+  const isOff = false;
   if (isOff) {
-    return (
+    void (
       <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white text-center p-5 z-[9999] relative">
         <span className="text-6xl mb-6 animate-bounce">🚧</span>
         <h1 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter">
