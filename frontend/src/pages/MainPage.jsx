@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  campusLinksById,
+  campusNoticeLinkIds,
+  campusQuickLinkIds,
+  getCampusLinkLabel
+} from '../data/campusLinks';
 const getWeatherInfo = (code, lang) => {
   const currentHour = new Date().getHours();
   const isNight = currentHour >= 18 || currentHour < 6;
@@ -102,16 +108,6 @@ function MainPage({ lang }) {
         { title: "ToDo List", desc: "집중 타이머와 함께 일정을 관리하세요.", icon: "📝", path: "/todo", color: "from-indigo-600 to-purple-700" },
         { title: "학점 계산기", desc: "실시간 그래프로 성적을 분석하세요.", icon: "🎓", path: "/gpa", color: "from-emerald-600 to-teal-700" }
       ],
-      quickLinks: [
-        { name: "e캠퍼스", url: "https://ecampus.changwon.ac.kr/login.php?mi=18314", icon: "💻" },
-        { name: "학사일정", url: "https://www.changwon.ac.kr/haksa/sv/schdulView/schdulCalendarView.do?mi=10980", icon: "📅" },
-        { name: "학사안내", url: "https://www.changwon.ac.kr/haksa/main.do", icon: "📜" }, 
-        { name: "등록안내", url: "https://www.changwon.ac.kr/portal/na/ntt/selectNttList.do?mi=18352&bbsId=6253", icon: "📋" },
-        { name: "교육과정", url: "https://www.changwon.ac.kr/haksa/cm/cntnts/cntntsView.do?mi=18077&cntntsId=6530", icon: "📘" }, 
-        { name: "수강신청", url: "https://chains.changwon.ac.kr/nonstop/suup/sugang/hakbu/index.php?mi=18302", icon: "📚" },
-        { name: "드림캐치", url: "https://dreamcatch.changwon.ac.kr/main.do?mi=18316", icon: "🧭" },
-        { name: "이뤄드림", url: "https://edream.changwon.ac.kr/?mi=18315", icon: "🌟" }
-      ]
     },
     en: {
       subtitle: "All-in-one Campus Solution for CWNU Students",
@@ -130,19 +126,20 @@ function MainPage({ lang }) {
         { title: "ToDo List", desc: "Manage tasks with a focus timer.", icon: "📝", path: "/todo", color: "from-indigo-600 to-purple-700" },
         { title: "GPA Calc", desc: "Analyze grades with real-time graphs.", icon: "🎓", path: "/gpa", color: "from-emerald-600 to-teal-700" }
       ],
-      quickLinks: [
-        { name: "e-Campus", url: "https://ecampus.changwon.ac.kr/login.php?mi=18314", icon: "💻" },
-        { name: "Schedule", url: "https://www.changwon.ac.kr/haksa/sv/schdulView/schdulCalendarView.do?mi=10980", icon: "📅" },
-        { name: "Academic", url: "https://www.changwon.ac.kr/haksa/main.do", icon: "📜" }, 
-        { name: "Tuition", url: "https://www.changwon.ac.kr/portal/na/ntt/selectNttList.do?mi=18352&bbsId=6253", icon: "📋" },
-        { name: "Curriculum", url: "https://www.changwon.ac.kr/haksa/cm/cntnts/cntntsView.do?mi=18077&cntntsId=6530", icon: "📘" }, 
-        { name: "Course Reg.", url: "https://chains.changwon.ac.kr/nonstop/suup/sugang/hakbu/index.php?mi=18302", icon: "📚" },
-        { name: "DreamCatch", url: "https://dreamcatch.changwon.ac.kr/main.do?mi=18316", icon: "🧭" },
-        { name: "e-Dream", url: "https://edream.changwon.ac.kr/?mi=18315", icon: "🌟" }
-      ]
     }
   };
   const current = t[lang] || t.ko; 
+  const mapCampusLink = (id) => {
+    const link = campusLinksById[id];
+    if (!link) return null;
+    return { ...link, name: getCampusLinkLabel(link, lang) };
+  };
+  const noticeLinks = campusNoticeLinkIds.map(mapCampusLink).filter(Boolean);
+  const quickLinks = campusQuickLinkIds.map(mapCampusLink).filter(Boolean);
+  const noticeButtonClasses = [
+    'inline-block bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 font-black text-base px-8 py-4 rounded-3xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all border border-blue-100 dark:border-gray-700 text-center',
+    'inline-block bg-[#002f6c] dark:bg-blue-800 text-white font-black text-base px-8 py-4 rounded-3xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all border border-blue-900 dark:border-gray-700 text-center'
+  ];
   const weatherData = weather ? getWeatherInfo(weather.weather_code, lang) : null;
   const dustData = dust ? getDustStatus(dust.pm10, lang) : null;
   useEffect(() => {
@@ -337,15 +334,16 @@ function MainPage({ lang }) {
           <div className="text-center mb-16 relative z-10">
             <h4 className="text-sm font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-8">{current.noticeTitle}</h4>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <a href="https://www.changwon.ac.kr/portal/na/ntt/selectNttList.do?mi=13532&bbsId=2932" target="_blank" rel="noreferrer" className="inline-block bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 font-black text-base px-8 py-4 rounded-3xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all border border-blue-100 dark:border-gray-700 text-center">{current.noticeBtn1} ↗</a>
-              <a href="https://www.changwon.ac.kr/portal/main.do#" target="_blank" rel="noreferrer" className="inline-block bg-[#002f6c] dark:bg-blue-800 text-white font-black text-base px-8 py-4 rounded-3xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all border border-blue-900 dark:border-gray-700 text-center">{current.noticeBtn2} ↗</a>
+              {noticeLinks.map((link, idx) => (
+                <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className={noticeButtonClasses[idx] || noticeButtonClasses[0]}>{link.name} ↗</a>
+              ))}
             </div>
           </div>
           <div id="tour-main-shortcuts" className="relative z-10">
             <h4 className="text-sm font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-center mb-8">{current.shortcutTitle}</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-              {current.quickLinks.map((link, idx) => (
-                <a key={idx} href={link.url} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-blue-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group">
+              {quickLinks.map((link) => (
+                <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-blue-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group">
                   <span className="text-3xl mb-2 group-hover:scale-110">{link.icon}</span>
                   <span className="text-xs font-black text-gray-700 dark:text-gray-300 text-center break-keep">{link.name}</span>
                 </a>
