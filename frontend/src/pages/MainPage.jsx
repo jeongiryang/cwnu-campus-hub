@@ -141,13 +141,12 @@ function MainPage({ lang }) {
     if (!link) return null;
     return { ...link, name: getCampusLinkLabel(link, lang) };
   };
-  const pinnedLinks = ['ecampus', 'wagle', 'library'].map(mapCampusLink).filter(Boolean);
   const weatherData = weather ? getWeatherInfo(weather.weather_code, lang) : null;
   const dustData = dust ? getDustStatus(dust.pm10, lang) : null;
   const dashboardText = lang === 'ko' ? {
     eyebrow: 'CWNU CAMPUS HUB',
-    title: '오늘 필요한 캠퍼스 기능을 한 화면에서 확인함',
-    description: '학식, 학업 도구, 학교 공식 링크를 모바일에서도 빠르게 실행할 수 있도록 정리함.',
+    title: '오늘 쓸 캠퍼스 기능만 빠르게 확인함',
+    description: '학식과 캠퍼스 상태를 먼저 확인하고, 학교 서비스와 학업 도구는 아래 섹션에서 바로 실행함.',
     todoCta: 'ToDo 열기',
     gpaCta: '학점계산기',
     todayTitle: '오늘의 캠퍼스',
@@ -164,8 +163,9 @@ function MainPage({ lang }) {
     portalGroup: '포털',
     studyGroup: '학습',
     academicGroup: '학사',
+    socialGroup: '소셜',
     mealPanelTitle: '오늘 학식',
-    mealPanelDesc: '봉림관과 사림관 식단 패널을 여기서만 열 수 있도록 통합함.',
+    mealPanelDesc: '학식은 이 대표 카드에서만 열도록 정리함.',
     statusTitle: '오늘 상태',
     toolsTitle: '학업 도구',
     toolsDesc: '할 일, 시간 관리, 학점 관리를 이어서 사용함.',
@@ -178,8 +178,8 @@ function MainPage({ lang }) {
     dustFallback: '대기 정보 로딩 중'
   } : {
     eyebrow: 'CWNU CAMPUS HUB',
-    title: 'Run today\'s campus tasks from one dashboard',
-    description: 'Meals, study tools, and official campus links are organized for quick mobile access.',
+    title: 'Open only the campus tools you need today',
+    description: 'Check meals and campus status first, then run official services and study tools below.',
     todoCta: 'Open ToDo',
     gpaCta: 'GPA Calculator',
     todayTitle: 'Today on Campus',
@@ -196,8 +196,9 @@ function MainPage({ lang }) {
     portalGroup: 'Portal',
     studyGroup: 'Study',
     academicGroup: 'Academic',
+    socialGroup: 'Social',
     mealPanelTitle: 'Today Meals',
-    mealPanelDesc: 'Bongrim and Sarim meal panels are consolidated here.',
+    mealPanelDesc: 'Meal panels are consolidated into this single card.',
     statusTitle: 'Today Status',
     toolsTitle: 'Study Tools',
     toolsDesc: 'Continue tasks, time tracking, and grade management.',
@@ -212,7 +213,8 @@ function MainPage({ lang }) {
   const campusServiceGroups = [
     { id: 'portal', title: dashboardText.portalGroup, linkIds: ['cwnu-notice', 'wagle'] },
     { id: 'study', title: dashboardText.studyGroup, linkIds: ['ecampus', 'library', 'copykiller', 'dreamcatch', 'edream'] },
-    { id: 'academic', title: dashboardText.academicGroup, linkIds: ['academic-calendar', 'academic-guide', 'tuition', 'curriculum', 'course-registration'] }
+    { id: 'academic', title: dashboardText.academicGroup, linkIds: ['academic-calendar', 'academic-guide', 'tuition', 'curriculum', 'course-registration'] },
+    { id: 'social', title: dashboardText.socialGroup, linkIds: ['instagram'] }
   ].map((group) => ({
     ...group,
     links: group.linkIds.map(mapCampusLink).filter(Boolean)
@@ -278,7 +280,7 @@ function MainPage({ lang }) {
     </div>
   );
   return (
-    <div className="min-h-screen flex flex-col transition-colors relative bg-gray-50/30 dark:bg-gray-900 overflow-x-hidden font-sans">
+    <div className="min-h-screen flex flex-col transition-colors relative bg-[#f6f8fb] dark:bg-gray-950 overflow-x-hidden font-sans">
       <style>{`
         @keyframes tour-slide-up { 0% { transform: translate(-50%, 50px); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
         .tour-popup { animation: tour-slide-up 0.4s forwards; }
@@ -339,76 +341,60 @@ function MainPage({ lang }) {
         </div>
         <div className="p-4 overflow-y-auto flex-grow bg-gray-50/50 dark:bg-gray-900">{AllergyGuideBox()}{renderFoodCard('사림관')}</div>
       </div>
-      <div className="relative max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 flex-grow py-6 md:py-10">
-        <section id="tour-main-header" className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr] mb-4 md:mb-6">
-          <div className="rounded-[1.75rem] border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 md:p-6 shadow-sm">
+      <div className="relative max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 flex-grow py-4 md:py-7">
+        <section id="tour-main-header" className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr] mb-4 md:mb-5">
+          <div className="rounded-[1.75rem] border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 md:p-6 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <span className="inline-flex rounded-full bg-blue-50 dark:bg-blue-900/30 px-3 py-1 text-[10px] font-black tracking-widest text-blue-700 dark:text-blue-300">{dashboardText.eyebrow}</span>
-                <h2 className="mt-4 text-2xl md:text-4xl font-black leading-tight text-[#002f6c] dark:text-blue-300 break-keep">{dashboardText.title}</h2>
-                <p className="mt-3 max-w-2xl text-sm font-bold text-gray-500 dark:text-gray-300 break-keep">{dashboardText.description}</p>
+                <h2 className="mt-3 text-2xl md:text-3xl font-black leading-tight text-[#002f6c] dark:text-blue-200 break-keep">{dashboardText.title}</h2>
+                <p className="mt-3 max-w-xl text-sm font-bold leading-relaxed text-gray-500 dark:text-gray-300 break-keep">{dashboardText.description}</p>
               </div>
-              <button onClick={() => setTourIndex(0)} className="shrink-0 rounded-2xl bg-yellow-500 px-3 py-2 text-[11px] font-black text-white shadow-sm hover:bg-yellow-600 transition">{current.help}</button>
+              <button onClick={() => setTourIndex(0)} className="shrink-0 rounded-full border border-yellow-200 bg-yellow-50 px-3 py-2 text-[11px] font-black text-yellow-700 shadow-sm hover:bg-yellow-100 transition dark:border-yellow-800/50 dark:bg-yellow-900/20 dark:text-yellow-200">{current.help}</button>
             </div>
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <button onClick={() => setIsBongrimOpen(true)} className="rounded-2xl bg-[#002f6c] p-4 text-left text-white shadow-sm hover:shadow-md transition">
-                <span className="block text-[11px] font-black opacity-80">{dashboardText.mealsTitle}</span>
-                <span className="mt-2 block text-sm font-black">{dashboardText.bongrimMeal}</span>
-              </button>
-              {pinnedLinks.slice(0, 2).map((link) => (
-                <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/70 p-4 text-left shadow-sm hover:border-blue-300 transition">
-                  <span className="block text-xl">{link.icon}</span>
-                  <span className="mt-2 block text-xs font-black text-gray-800 dark:text-gray-100 break-keep">{link.name}</span>
-                </a>
-              ))}
-              <Link to="/todo" className="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/70 p-4 text-left shadow-sm hover:border-blue-300 transition">
-                <span className="block text-xl">TD</span>
-                <span className="mt-2 block text-xs font-black text-gray-800 dark:text-gray-100">{dashboardText.todoCta}</span>
-              </Link>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950/70">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{lang === 'ko' ? '날씨' : 'Weather'}</p>
+                <p className="mt-2 text-2xl font-black text-gray-900 dark:text-white">{weather ? `${weather.temperature_2m}°C` : '-'}</p>
+                <p className="mt-1 text-[11px] font-bold text-gray-500 dark:text-gray-400">{weatherData ? weatherData.text : dashboardText.weatherFallback}</p>
+              </div>
+              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950/70">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{lang === 'ko' ? '미세먼지' : 'Dust'}</p>
+                <p className={`mt-2 text-2xl font-black ${dustData ? dustData.color : 'text-gray-500'}`}>{dust ? dust.pm10 : '-'}</p>
+                <p className="mt-1 text-[11px] font-bold text-gray-500 dark:text-gray-400">{dustData ? dustData.text : dashboardText.dustFallback}</p>
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-4">
-            <div className="rounded-[1.75rem] border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">
-              <h3 className="text-sm font-black text-gray-900 dark:text-white">{dashboardText.statusTitle}</h3>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-gray-50 dark:bg-gray-900/70 p-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{lang === 'ko' ? '날씨' : 'Weather'}</p>
-                  <p className="mt-2 text-xl font-black text-gray-900 dark:text-white">{weather ? `${weather.temperature_2m}°C` : '-'}</p>
-                  <p className="mt-1 text-[11px] font-bold text-gray-500 dark:text-gray-400">{weatherData ? weatherData.text : dashboardText.weatherFallback}</p>
-                </div>
-                <div className="rounded-2xl bg-gray-50 dark:bg-gray-900/70 p-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{lang === 'ko' ? '미세먼지' : 'Dust'}</p>
-                  <p className={`mt-2 text-xl font-black ${dustData ? dustData.color : 'text-gray-500'}`}>{dust ? dust.pm10 : '-'}</p>
-                  <p className="mt-1 text-[11px] font-bold text-gray-500 dark:text-gray-400">{dustData ? dustData.text : dashboardText.dustFallback}</p>
-                </div>
+          <div id="tour-meals" className="rounded-[1.75rem] border border-blue-100 bg-white p-5 shadow-sm dark:border-blue-900/40 dark:bg-gray-900">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-[10px] font-black tracking-widest text-blue-700 dark:bg-blue-900/30 dark:text-blue-200">{dashboardText.todayTitle}</span>
+                <h3 className="mt-3 text-xl font-black text-gray-900 dark:text-white">{dashboardText.mealPanelTitle}</h3>
+                <p className="mt-1 text-xs font-bold leading-relaxed text-gray-500 dark:text-gray-400 break-keep">{dashboardText.mealPanelDesc}</p>
               </div>
-            </div>
-            <div id="tour-meals" className="rounded-[1.75rem] border border-blue-100 dark:border-blue-800/40 bg-blue-50/70 dark:bg-blue-900/20 p-5 shadow-sm">
-              <h3 className="text-base font-black text-gray-900 dark:text-white">{dashboardText.mealPanelTitle}</h3>
-              <p className="mt-1 text-xs font-bold text-gray-500 dark:text-gray-400 break-keep">{dashboardText.mealPanelDesc}</p>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <button onClick={() => setIsBongrimOpen(true)} className="rounded-2xl bg-blue-600 px-4 py-3 text-left text-xs font-black text-white shadow-sm hover:bg-blue-700 transition">{dashboardText.bongrimMeal}</button>
-                <button onClick={() => setIsSarimOpen(true)} className="rounded-2xl bg-indigo-600 px-4 py-3 text-left text-xs font-black text-white shadow-sm hover:bg-indigo-700 transition">{dashboardText.sarimMeal}</button>
+              <div className="grid grid-cols-2 gap-3 md:min-w-72">
+                <button onClick={() => setIsBongrimOpen(true)} className="rounded-2xl bg-[#002f6c] px-4 py-4 text-left text-sm font-black text-white shadow-sm transition hover:bg-blue-800">{dashboardText.bongrimMeal}</button>
+                <button onClick={() => setIsSarimOpen(true)} className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-4 text-left text-sm font-black text-gray-900 shadow-sm transition hover:border-blue-300 dark:border-gray-800 dark:bg-gray-950 dark:text-white">{dashboardText.sarimMeal}</button>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="tour-main-shortcuts" className="mb-4 md:mb-6 rounded-[1.75rem] border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 md:p-6 shadow-sm">
+        <section id="tour-main-shortcuts" className="mb-4 md:mb-5 rounded-[1.75rem] border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 md:p-6 shadow-sm">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h3 className="text-xl font-black text-gray-900 dark:text-white">{dashboardText.utilityTitle}</h3>
               <p className="text-xs font-bold text-gray-500 dark:text-gray-400 break-keep">{dashboardText.servicesDesc}</p>
             </div>
           </div>
-          <div className="mt-5 grid gap-4 lg:grid-cols-3">
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {campusServiceGroups.map((group) => (
-              <div key={group.id} className="rounded-2xl bg-gray-50 dark:bg-gray-900/70 p-4">
+              <div key={group.id} className="rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950/70">
                 <h4 className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">{group.title}</h4>
                 <div className="mt-3 grid gap-2">
                   {group.links.map((link) => (
-                    <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-3 rounded-xl bg-white dark:bg-gray-800 px-3 py-3 text-sm font-black text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 hover:border-blue-300 transition">
+                    <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-3 rounded-xl bg-white dark:bg-gray-900 px-3 py-3 text-sm font-black text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-800 hover:border-blue-300 hover:shadow-sm transition">
                       <span className="flex items-center gap-2 break-keep"><span>{link.icon}</span>{link.name}</span>
                       <span className="text-[10px] text-gray-400">↗</span>
                     </a>
@@ -419,16 +405,16 @@ function MainPage({ lang }) {
           </div>
         </section>
 
-        <section id="tour-main-services" className="mb-4 md:mb-6 rounded-[1.75rem] border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 md:p-6 shadow-sm">
+        <section id="tour-main-services" className="mb-4 md:mb-5 rounded-[1.75rem] border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 md:p-6 shadow-sm">
           <div className="mb-4">
             <h3 className="text-xl font-black text-gray-900 dark:text-white">{dashboardText.toolsTitle}</h3>
             <p className="text-xs font-bold text-gray-500 dark:text-gray-400 break-keep">{dashboardText.toolsDesc}</p>
           </div>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {studyTools.map((tool) => (
-              <Link key={tool.title} to={tool.path} className="relative min-h-28 overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/70 p-4 hover:border-blue-300 hover:shadow-sm transition">
+              <Link key={tool.title} to={tool.path} className="relative min-h-28 overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/70 p-4 hover:border-blue-300 hover:shadow-sm transition">
                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${tool.color}`}></div>
-                <span className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-white dark:bg-gray-800 text-xs font-black text-[#002f6c] dark:text-blue-300">{tool.icon}</span>
+                <span className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-white dark:bg-gray-900 text-xs font-black text-[#002f6c] dark:text-blue-300 shadow-sm">{tool.icon}</span>
                 <h4 className="mt-3 text-sm font-black text-gray-900 dark:text-white break-keep">{tool.title}</h4>
                 <p className="mt-1 text-[11px] font-bold text-gray-500 dark:text-gray-400 break-keep">{tool.desc}</p>
               </Link>
@@ -436,10 +422,10 @@ function MainPage({ lang }) {
           </div>
         </section>
 
-        <section className="rounded-[1.75rem] border border-dashed border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/70 p-5 md:p-6 shadow-sm">
+        <section className="rounded-[1.75rem] border border-dashed border-gray-200 dark:border-gray-800 bg-white/90 dark:bg-gray-900/80 p-5 md:p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
-              <span className="inline-flex rounded-full bg-gray-100 dark:bg-gray-900 px-3 py-1 text-[10px] font-black text-gray-500 dark:text-gray-400">{dashboardText.savedLocally}</span>
+              <span className="inline-flex rounded-full bg-gray-100 dark:bg-gray-950 px-3 py-1 text-[10px] font-black text-gray-500 dark:text-gray-400">{dashboardText.savedLocally}</span>
               <h3 className="mt-3 text-lg font-black text-gray-900 dark:text-white">{dashboardText.favoritesTitle}</h3>
               <p className="mt-1 text-xs font-bold text-gray-500 dark:text-gray-400 break-keep">{dashboardText.favoritesDesc}</p>
             </div>
