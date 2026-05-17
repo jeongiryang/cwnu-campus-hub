@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, Link, useLocation } from 'react-router-dom';
 import MainPage from './pages/MainPage';
-import MarketPage from './pages/MarketPage';
 import TodoPage from './pages/TodoPage';
 import GpaPage from './pages/GpaPage';
-import LostPage from './pages/LostPage';
 
 const formatDateTime = (langCode, is12Hour) => {
   const now = new Date();
@@ -154,8 +152,8 @@ function App() {
   };
 
   const t = {
-    ko: { market: "MARKET", lost: "분실물 센터", todo: "TODO", gpa: "GPA 계산기", copykiller: "카피킬러↗", food: "학식↗", lib: " 도서관↗", insta: "📸 인스타" },
-    en: { market: "MARKET", lost: "Lost&Found", todo: "TODO", gpa: "GPA Calc", copykiller: "CopyKiller↗", food: "Food↗", lib: " Library↗", insta: "📸 Insta" }
+    ko: { todo: "TODO", gpa: "GPA 계산기", copykiller: "카피킬러↗", food: "학식↗", lib: " 도서관↗", insta: "📸 인스타" },
+    en: { todo: "TODO", gpa: "GPA Calc", copykiller: "CopyKiller↗", food: "Food↗", lib: " Library↗", insta: "📸 Insta" }
   };
 
   return (
@@ -175,8 +173,6 @@ function App() {
 
         {location.pathname !== '/' && (
           <nav className="flex items-center gap-1 md:gap-4 bg-black/20 p-1 md:p-1.5 rounded-2xl">
-            <Link to="/market" className={getMenuClass('/market')}>🏪 <span className="hidden sm:inline">{t[lang].market}</span><span className="sm:hidden text-[10px]">{t[lang].market}</span></Link>
-            <Link to="/lost" className={getMenuClass('/lost')}>🔍 <span className="hidden sm:inline">{t[lang].lost}</span><span className="sm:hidden text-[10px]">분실물</span></Link>
             <Link to="/todo" className={getMenuClass('/todo')}>📝 <span className="hidden sm:inline">{t[lang].todo}</span><span className="sm:hidden text-[10px]">{t[lang].todo}</span></Link>
             <Link to="/gpa" className={getMenuClass('/gpa')}>🎓 <span className="hidden sm:inline">{t[lang].gpa}</span><span className="sm:hidden text-[10px]">GPA</span></Link>
           </nav>
@@ -247,8 +243,6 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<MainPage lang={lang} />} />
-          <Route path="/market" element={<MarketPage lang={lang} />} />
-          <Route path="/lost" element={<LostPage lang={lang} />} />
           <Route path="/todo" element={<TodoPage lang={lang} timerMode={timerMode} setTimerMode={setTimerMode} timerTime={timerTime} setTimerTime={setTimerTime} timerIsRunning={timerIsRunning} setTimerIsRunning={setTimerIsRunning} />} />
           <Route path="/gpa" element={<GpaPage lang={lang} />} />
         </Routes>

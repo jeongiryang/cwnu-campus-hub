@@ -32,10 +32,7 @@ app.use(async (req, res, next) => {
 const itemSchema = new mongoose.Schema({
   title: { type: String, required: true },
   completed: { type: Boolean, default: false },
-  price: { type: Number, default: 0 },
-  type: { type: String, required: true, enum: ['todo', 'market', 'lost'] },
-  studentId: String, sellerName: String, phone: String, location: String, description: String,
-  likes: { type: Number, default: 0 },
+  type: { type: String, required: true, enum: ['todo'] },
   createdAt: { type: Date, default: Date.now },
   importance: { type: String },
   todoDeadline: { type: String }
@@ -157,13 +154,8 @@ app.get('/api/food', async (req, res) => {
     res.status(500).json({ error: "서버 에러" });
   }
 });
-app.get('/api/market', async (req, res) => res.json(await Item.find({ type: 'market' })));
 app.get('/api/todo', async (req, res) => res.json(await Item.find({ type: 'todo' })));
-app.get('/api/lost', async (req, res) => res.json(await Item.find({ type: 'lost' })));
-app.post('/api/market', async (req, res) => { const newItem = new Item({ ...req.body, type: 'market' }); await newItem.save(); res.json(newItem); });
 app.post('/api/todo', async (req, res) => { const newItem = new Item({ ...req.body, type: 'todo' }); await newItem.save(); res.json(newItem); });
-app.post('/api/lost', async (req, res) => { const newItem = new Item({ ...req.body, type: 'lost' }); await newItem.save(); res.json(newItem); });
-app.patch('/api/items/:id/like', async (req, res) => res.json(await Item.findByIdAndUpdate(req.params.id, { $inc: { likes: req.body.value || 1 } }, { returnDocument: 'after' })));
 app.put('/api/items/:id', async (req, res) => res.json(await Item.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' })));
 app.delete('/api/items/:id', async (req, res) => { await Item.findByIdAndDelete(req.params.id); res.json({ message: '삭제 완료' }); });
 app.post('/api/ai/generate', async (req, res) => {
