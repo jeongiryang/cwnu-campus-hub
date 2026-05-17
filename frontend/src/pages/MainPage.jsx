@@ -142,6 +142,59 @@ function MainPage({ lang }) {
   ];
   const weatherData = weather ? getWeatherInfo(weather.weather_code, lang) : null;
   const dustData = dust ? getDustStatus(dust.pm10, lang) : null;
+  const dashboardText = lang === 'ko' ? {
+    eyebrow: 'CWNU CAMPUS HUB',
+    title: '오늘 필요한 캠퍼스 기능을 한 화면에서 확인함',
+    description: '학식, 학업 도구, 학교 공식 링크를 모바일에서도 빠르게 실행할 수 있도록 정리함.',
+    todoCta: 'ToDo 열기',
+    gpaCta: '학점계산기',
+    todayTitle: '오늘의 캠퍼스',
+    todayDesc: '학식과 자주 쓰는 학교 서비스를 먼저 배치함.',
+    mealsTitle: '학식',
+    mealsDesc: '봉림관과 사림관 식단을 바로 확인함.',
+    bongrimMeal: '봉림관',
+    sarimMeal: '사림관',
+    linkOpen: '바로가기',
+    quickTitle: '빠른 링크',
+    quickDesc: '검증된 학교 공식 링크만 표시함.',
+    utilityTitle: '캠퍼스 유틸리티',
+    toolsTitle: '학업 도구',
+    toolsDesc: '할 일, 시간 관리, 학점 관리를 이어서 사용함.',
+    favoritesTitle: '학과 즐겨찾기 준비 중',
+    favoritesDesc: '다음 단계에서 학과별 링크를 연결할 수 있도록 영역을 확보함.',
+    weatherFallback: '날씨 로딩 중',
+    dustFallback: '대기 정보 로딩 중'
+  } : {
+    eyebrow: 'CWNU CAMPUS HUB',
+    title: 'Run today\'s campus tasks from one dashboard',
+    description: 'Meals, study tools, and official campus links are organized for quick mobile access.',
+    todoCta: 'Open ToDo',
+    gpaCta: 'GPA Calculator',
+    todayTitle: 'Today on Campus',
+    todayDesc: 'Meals and frequently used campus services are placed first.',
+    mealsTitle: 'Meals',
+    mealsDesc: 'Check Bongrim and Sarim menus quickly.',
+    bongrimMeal: 'Bongrim',
+    sarimMeal: 'Sarim',
+    linkOpen: 'Open',
+    quickTitle: 'Quick Links',
+    quickDesc: 'Only verified official campus links are shown.',
+    utilityTitle: 'Campus Utilities',
+    toolsTitle: 'Study Tools',
+    toolsDesc: 'Continue tasks, time tracking, and grade management.',
+    favoritesTitle: 'Department Favorites Coming Soon',
+    favoritesDesc: 'This area is reserved for department-based links in the next phase.',
+    weatherFallback: 'Loading weather',
+    dustFallback: 'Loading air quality'
+  };
+  const todayLinks = ['ecampus', 'wagle', 'library'].map(mapCampusLink).filter(Boolean);
+  const campusUtilityLinks = ['food', 'copykiller', 'instagram'].map(mapCampusLink).filter(Boolean);
+  const studyTools = [
+    { title: 'ToDo List', desc: lang === 'ko' ? '할 일과 집중 시간을 관리함.' : 'Manage tasks and focus time.', icon: 'TD', path: '/todo', color: 'from-indigo-600 to-blue-600' },
+    { title: lang === 'ko' ? '타이머' : 'Timer', desc: lang === 'ko' ? '학습 시간을 짧게 측정함.' : 'Track short study sessions.', icon: '25', path: '/todo', color: 'from-sky-600 to-cyan-600' },
+    { title: lang === 'ko' ? '스톱워치' : 'Stopwatch', desc: lang === 'ko' ? '공부한 시간을 누적 확인함.' : 'Measure study time continuously.', icon: 'ST', path: '/todo', color: 'from-amber-500 to-orange-600' },
+    { title: lang === 'ko' ? '학점계산기' : 'GPA Calc', desc: lang === 'ko' ? '그래프와 CSV로 성적을 정리함.' : 'Review grades with charts and CSV.', icon: 'A+', path: '/gpa', color: 'from-emerald-600 to-teal-600' }
+  ];
   useEffect(() => {
     if (tourIndex >= 0 && tourIndex < current.tourSteps.length) {
       const el = document.getElementById(current.tourSteps[tourIndex].targetId);
@@ -266,7 +319,7 @@ function MainPage({ lang }) {
         </div>
         <div className="p-4 overflow-y-auto flex-grow bg-gray-50/50 dark:bg-gray-900">{AllergyGuideBox()}{renderFoodCard('사림관')}</div>
       </div>
-      <div className="relative max-w-7xl mx-auto w-full px-5 md:px-10 flex-grow flex flex-col justify-center mt-4 md:mt-0">
+      <div className="relative max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 flex-grow py-6 md:py-10">
        
      
         <div className="flex justify-center mb-6 md:mb-8 pt-4 relative z-[150]">
@@ -308,49 +361,141 @@ function MainPage({ lang }) {
         </div>
 
         
-        <div id="tour-main-header" className="text-center mb-10 md:mb-14 relative">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <h2 className="text-4xl md:text-6xl font-black text-[#002f6c] dark:text-blue-400 tracking-tighter">
-              CWNU <span className="text-blue-600 dark:text-blue-500">SMART</span> PORTAL
+        <section id="tour-main-header" className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr] items-stretch mb-5 md:mb-8">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl shadow-sm p-6 md:p-8">
+            <div className="flex items-center justify-between gap-3 mb-5">
+              <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/30 px-3 py-1 text-[11px] font-black tracking-widest text-blue-700 dark:text-blue-300">
+                {dashboardText.eyebrow}
+              </span>
+              <button onClick={() => setTourIndex(0)} className="bg-yellow-500 text-white px-3 py-2 rounded-2xl font-black text-[11px] shadow-sm hover:bg-yellow-600 transition-all">
+                {current.help}
+              </button>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-[#002f6c] dark:text-blue-300 leading-tight break-keep">
+              {dashboardText.title}
             </h2>
-            <button onClick={() => setTourIndex(0)} className="hidden md:flex bg-yellow-500 text-white px-3 py-1.5 rounded-xl font-black text-[10px] md:text-xs shadow-md flex items-center gap-1 hover:bg-yellow-600 transition-all hover:scale-105 h-fit mt-1 md:mt-3">
-              {current.help}
-            </button>
+            <p className="text-sm md:text-base text-gray-500 dark:text-gray-300 font-bold mt-4 max-w-2xl break-keep">
+              {dashboardText.description}
+            </p>
+            <div className="grid grid-cols-2 sm:flex gap-3 mt-6">
+              <Link to="/todo" className="text-center rounded-2xl bg-[#002f6c] dark:bg-blue-700 text-white px-4 py-3 text-xs font-black shadow-sm hover:shadow-md transition-all">
+                {dashboardText.todoCta}
+              </Link>
+              <Link to="/gpa" className="text-center rounded-2xl bg-white dark:bg-gray-900 text-[#002f6c] dark:text-blue-300 border border-blue-100 dark:border-gray-700 px-4 py-3 text-xs font-black shadow-sm hover:shadow-md transition-all">
+                {dashboardText.gpaCta}
+              </Link>
+            </div>
           </div>
-          <p className="text-gray-500 dark:text-gray-400 font-bold text-base md:text-lg">{current.subtitle}</p>
-        </div>
-        <div id="tour-main-services" className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 mb-12 md:mb-20 max-w-4xl mx-auto w-full">
-          {current.services.map((s, idx) => (
-            <Link key={idx} to={s.path} className="group relative overflow-hidden bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 border-2 border-gray-50 dark:border-gray-700 flex flex-col items-center text-center">
-              <div className={`absolute top-0 left-0 w-full h-2 bg-gradient-to-r ${s.color}`}></div>
-              <div className="text-5xl md:text-6xl mb-6 group-hover:scale-110 duration-300 drop-shadow-md">{s.icon}</div>
-              <h3 className="text-xl md:text-2xl font-black text-gray-800 dark:text-white mb-2">{s.title}</h3>
-              <p className="text-gray-500 dark:text-gray-400 font-medium text-xs md:text-sm mb-8 flex-grow break-keep">{s.desc}</p>
-              <div className={`w-full py-3 rounded-xl bg-gradient-to-r ${s.color} text-white font-black text-[11px] uppercase tracking-widest`}>{current.serviceGo}</div>
-            </Link>
-          ))}
-        </div>
-        <div className="bg-blue-50/50 dark:bg-blue-900/20 p-8 md:p-12 rounded-[3.5rem] border-2 border-blue-100/50 dark:border-blue-800/50 relative overflow-hidden">
-          <div className="text-center mb-16 relative z-10">
-            <h4 className="text-sm font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-8">{current.noticeTitle}</h4>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => setIsBongrimOpen(true)} className="bg-blue-600 text-white rounded-3xl p-5 text-left shadow-sm hover:shadow-md transition-all">
+              <span className="block text-xs font-black opacity-80 mb-2">{dashboardText.mealsTitle}</span>
+              <span className="block text-xl font-black">{dashboardText.bongrimMeal}</span>
+              <span className="block text-[11px] font-bold opacity-80 mt-3">{dashboardText.linkOpen}</span>
+            </button>
+            <button onClick={() => setIsSarimOpen(true)} className="bg-indigo-600 text-white rounded-3xl p-5 text-left shadow-sm hover:shadow-md transition-all">
+              <span className="block text-xs font-black opacity-80 mb-2">{dashboardText.mealsTitle}</span>
+              <span className="block text-xl font-black">{dashboardText.sarimMeal}</span>
+              <span className="block text-[11px] font-bold opacity-80 mt-3">{dashboardText.linkOpen}</span>
+            </button>
+            <div className="col-span-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl p-5 shadow-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">{lang === 'ko' ? '날씨' : 'Weather'}</p>
+                  <p className="text-lg font-black text-gray-800 dark:text-white mt-1">{weather ? `${weather.temperature_2m}°C` : '-'}</p>
+                  <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400">{weatherData ? weatherData.text : dashboardText.weatherFallback}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">{lang === 'ko' ? '미세먼지' : 'Dust'}</p>
+                  <p className={`text-lg font-black mt-1 ${dustData ? dustData.color : 'text-gray-500'}`}>{dust ? dust.pm10 : '-'}</p>
+                  <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400">{dustData ? dustData.text : dashboardText.dustFallback}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr] mb-5 md:mb-8">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl p-5 md:p-6 shadow-sm">
+            <div className="flex items-start justify-between gap-4 mb-5">
+              <div>
+                <h3 className="text-xl font-black text-gray-900 dark:text-white">{dashboardText.todayTitle}</h3>
+                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-1 break-keep">{dashboardText.todayDesc}</p>
+              </div>
+              <span className="rounded-full bg-blue-50 dark:bg-blue-900/30 px-3 py-1 text-[10px] font-black text-blue-600 dark:text-blue-300">TODAY</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {todayLinks.map((link) => (
+                <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="group rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/70 p-4 hover:border-blue-300 dark:hover:border-blue-500 transition-all">
+                  <span className="text-2xl">{link.icon}</span>
+                  <span className="block text-sm font-black text-gray-800 dark:text-gray-100 mt-3 break-keep">{link.name}</span>
+                  <span className="block text-[11px] font-bold text-gray-400 dark:text-gray-500 mt-1">{dashboardText.linkOpen}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+          <div className="bg-blue-50/70 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40 rounded-3xl p-5 md:p-6 shadow-sm">
+            <h3 className="text-sm font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">{current.noticeTitle}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {noticeLinks.map((link, idx) => (
                 <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className={noticeButtonClasses[idx] || noticeButtonClasses[0]}>{link.name} ↗</a>
               ))}
             </div>
           </div>
-          <div id="tour-main-shortcuts" className="relative z-10">
-            <h4 className="text-sm font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-center mb-8">{current.shortcutTitle}</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-              {quickLinks.map((link) => (
-                <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-blue-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group">
-                  <span className="text-3xl mb-2 group-hover:scale-110">{link.icon}</span>
-                  <span className="text-xs font-black text-gray-700 dark:text-gray-300 text-center break-keep">{link.name}</span>
+        </section>
+
+        <section id="tour-main-shortcuts" className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl p-5 md:p-6 shadow-sm mb-5 md:mb-8">
+          <div className="flex items-end justify-between gap-4 mb-5">
+            <div>
+              <h3 className="text-xl font-black text-gray-900 dark:text-white">{dashboardText.quickTitle}</h3>
+              <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-1 break-keep">{dashboardText.quickDesc}</p>
+            </div>
+            <span className="hidden sm:inline-flex rounded-full bg-gray-100 dark:bg-gray-900 px-3 py-1 text-[10px] font-black text-gray-500 dark:text-gray-400">{quickLinks.length}</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            {quickLinks.map((link) => (
+              <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="flex min-h-24 flex-col justify-between rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/70 p-4 hover:border-blue-300 dark:hover:border-blue-500 hover:-translate-y-0.5 transition-all group">
+                <span className="text-2xl group-hover:scale-105 transition-transform">{link.icon}</span>
+                <span className="text-xs font-black text-gray-700 dark:text-gray-200 break-keep">{link.name}</span>
+              </a>
+            ))}
+          </div>
+          <div className="mt-5 pt-5 border-t border-gray-100 dark:border-gray-700">
+            <h4 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">{dashboardText.utilityTitle}</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {campusUtilityLinks.map((link) => (
+                <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-2xl bg-blue-50/70 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40 p-4 hover:border-blue-300 transition-all">
+                  <span className="text-xl">{link.icon}</span>
+                  <span className="text-sm font-black text-gray-800 dark:text-gray-100 break-keep">{link.name}</span>
                 </a>
               ))}
             </div>
           </div>
-        </div>
+        </section>
+
+        <section id="tour-main-services" className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl p-5 md:p-6 shadow-sm">
+          <div className="flex items-end justify-between gap-4 mb-5">
+            <div>
+              <h3 className="text-xl font-black text-gray-900 dark:text-white">{dashboardText.toolsTitle}</h3>
+              <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-1 break-keep">{dashboardText.toolsDesc}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {studyTools.map((tool) => (
+              <Link key={tool.title} to={tool.path} className="group relative overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/70 p-4 min-h-36 hover:-translate-y-0.5 hover:shadow-md transition-all">
+                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${tool.color}`}></div>
+                <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-2xl bg-white dark:bg-gray-800 text-sm font-black text-[#002f6c] dark:text-blue-300 shadow-sm">{tool.icon}</span>
+                <h3 className="text-sm md:text-base font-black text-gray-800 dark:text-white mt-4 break-keep">{tool.title}</h3>
+                <p className="text-[11px] md:text-xs font-bold text-gray-500 dark:text-gray-400 mt-2 break-keep">{tool.desc}</p>
+                <span className="mt-4 inline-block text-[10px] font-black text-blue-600 dark:text-blue-300">{current.serviceGo}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-5 md:mt-8 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/60 p-5 md:p-6">
+          <h3 className="text-base font-black text-gray-800 dark:text-white">{dashboardText.favoritesTitle}</h3>
+          <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-2 break-keep">{dashboardText.favoritesDesc}</p>
+        </section>
       </div>
       <footer className="py-8 md:py-12 text-center border-t border-gray-200 dark:border-gray-800 mt-16 md:mt-24 relative z-10 transition-colors">
   <p className="text-gray-600 dark:text-gray-400 font-black text-[10px] md:text-sm uppercase tracking-widest mb-1.5 md:mb-2 break-keep leading-relaxed">
