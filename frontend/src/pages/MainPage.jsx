@@ -6,6 +6,14 @@ import {
   campusQuickLinkIds,
   getCampusLinkLabel
 } from '../data/campusLinks';
+import {
+  defaultDepartmentId,
+  departmentLinks,
+  departmentLinksById,
+  getDepartmentLabel,
+  getDepartmentLinkLabel,
+  selectedDepartmentStorageKey
+} from '../data/departmentLinks';
 const getWeatherInfo = (code, lang) => {
   const currentHour = new Date().getHours();
   const isNight = currentHour >= 18 || currentHour < 6;
@@ -41,6 +49,10 @@ function MainPage({ lang }) {
   const [isSarimOpen, setIsSarimOpen] = useState(false);
   const [bongrimTab, setBongrimTab] = useState('1층');
   const [showAllergy, setShowAllergy] = useState(false);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState(() => {
+    const storedDepartmentId = localStorage.getItem(selectedDepartmentStorageKey);
+    return departmentLinksById[storedDepartmentId] ? storedDepartmentId : defaultDepartmentId;
+  });
   useEffect(() => {
     
     const fetchWeather = async () => {
@@ -90,6 +102,10 @@ function MainPage({ lang }) {
 
     return () => clearInterval(interval);
   }, []);
+  useEffect(() => {
+    localStorage.setItem(selectedDepartmentStorageKey, selectedDepartmentId);
+  }, [selectedDepartmentId]);
+
   const t = {
     ko: {
       subtitle: "창원대학교 학우들을 위한 올인원 캠퍼스 솔루션",
@@ -160,8 +176,11 @@ function MainPage({ lang }) {
     utilityTitle: '캠퍼스 유틸리티',
     toolsTitle: '학업 도구',
     toolsDesc: '할 일, 시간 관리, 학점 관리를 이어서 사용함.',
-    favoritesTitle: '학과 즐겨찾기 준비 중',
-    favoritesDesc: '다음 단계에서 학과별 링크를 연결할 수 있도록 영역을 확보함.',
+    favoritesTitle: '내 학과 바로가기',
+    favoritesDesc: '선택한 학과를 이 브라우저에 저장하고, 검증된 링크가 생기면 바로 연결할 수 있도록 구성함.',
+    departmentSelectLabel: '학과 선택',
+    verificationNeeded: '검증 필요',
+    savedLocally: 'localStorage에 저장함',
     weatherFallback: '날씨 로딩 중',
     dustFallback: '대기 정보 로딩 중'
   } : {
@@ -182,8 +201,11 @@ function MainPage({ lang }) {
     utilityTitle: 'Campus Utilities',
     toolsTitle: 'Study Tools',
     toolsDesc: 'Continue tasks, time tracking, and grade management.',
-    favoritesTitle: 'Department Favorites Coming Soon',
-    favoritesDesc: 'This area is reserved for department-based links in the next phase.',
+    favoritesTitle: 'My Department Links',
+    favoritesDesc: 'The selected department is saved in this browser and ready for verified official links.',
+    departmentSelectLabel: 'Department',
+    verificationNeeded: 'Needs verification',
+    savedLocally: 'Saved in localStorage',
     weatherFallback: 'Loading weather',
     dustFallback: 'Loading air quality'
   };
@@ -195,6 +217,8 @@ function MainPage({ lang }) {
     { title: lang === 'ko' ? '스톱워치' : 'Stopwatch', desc: lang === 'ko' ? '공부한 시간을 누적 확인함.' : 'Measure study time continuously.', icon: 'ST', path: '/todo', color: 'from-amber-500 to-orange-600' },
     { title: lang === 'ko' ? '학점계산기' : 'GPA Calc', desc: lang === 'ko' ? '그래프와 CSV로 성적을 정리함.' : 'Review grades with charts and CSV.', icon: 'A+', path: '/gpa', color: 'from-emerald-600 to-teal-600' }
   ];
+  const selectedDepartment = departmentLinksById[selectedDepartmentId] || departmentLinksById[defaultDepartmentId];
+  const selectedDepartmentName = selectedDepartment ? getDepartmentLabel(selectedDepartment, lang) : '';
   useEffect(() => {
     if (tourIndex >= 0 && tourIndex < current.tourSteps.length) {
       const el = document.getElementById(current.tourSteps[tourIndex].targetId);
@@ -493,8 +517,65 @@ function MainPage({ lang }) {
         </section>
 
         <section className="mt-5 md:mt-8 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/60 p-5 md:p-6">
-          <h3 className="text-base font-black text-gray-800 dark:text-white">{dashboardText.favoritesTitle}</h3>
-          <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-2 break-keep">{dashboardText.favoritesDesc}</p>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <span className="inline-flex rounded-full bg-blue-50 dark:bg-blue-900/30 px-3 py-1 text-[10px] font-black text-blue-600 dark:text-blue-300">
+                {dashboardText.savedLocally}
+              </span>
+              <h3 className="text-base md:text-xl font-black text-gray-800 dark:text-white mt-3">{dashboardText.favoritesTitle}</h3>
+              <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mt-2 break-keep">{dashboardText.favoritesDesc}</p>
+            </div>
+            <label className="flex flex-col gap-2 text-[11px] font-black text-gray-500 dark:text-gray-400 lg:min-w-72">
+              {dashboardText.departmentSelectLabel}
+              <select
+                value={selectedDepartmentId}
+                onChange={(event) => setSelectedDepartmentId(event.target.value)}
+                className="w-full rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 text-sm font-black text-gray-800 dark:text-gray-100 outline-none focus:border-blue-400"
+              >
+                {departmentLinks.map((department) => (
+                  <option key={department.id} value={department.id}>
+                    {getDepartmentLabel(department, lang)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          {selectedDepartment && (
+            <div className="mt-5 rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900/60 p-4">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-[11px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">{selectedDepartment.collegeNameKo}</p>
+                  <h4 className="text-lg font-black text-gray-900 dark:text-white">{selectedDepartmentName}</h4>
+                </div>
+                <p className="text-[11px] font-bold text-gray-400 dark:text-gray-500">ID: {selectedDepartment.id}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                {selectedDepartment.links.map((link) => {
+                  const isClickable = Boolean(link.url) && !link.needsVerification && !link.disabled;
+                  const content = (
+                    <>
+                      <span className="text-sm font-black">{getDepartmentLinkLabel(link, lang)}</span>
+                      <span className="text-[11px] font-bold opacity-75">{isClickable ? dashboardText.linkOpen : dashboardText.verificationNeeded}</span>
+                    </>
+                  );
+
+                  if (isClickable) {
+                    return (
+                      <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="flex min-h-20 flex-col justify-between rounded-2xl border border-blue-100 dark:border-blue-800/40 bg-blue-50/70 dark:bg-blue-900/20 p-4 text-blue-700 dark:text-blue-200 hover:border-blue-300 transition-all">
+                        {content}
+                      </a>
+                    );
+                  }
+
+                  return (
+                    <div key={link.id} className="flex min-h-20 flex-col justify-between rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4 text-gray-400 dark:text-gray-500">
+                      {content}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </section>
       </div>
       <footer className="py-8 md:py-12 text-center border-t border-gray-200 dark:border-gray-800 mt-16 md:mt-24 relative z-10 transition-colors">
