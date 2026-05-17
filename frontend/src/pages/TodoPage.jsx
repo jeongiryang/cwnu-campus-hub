@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import axios from 'axios'
 const TITLE_MENTIONS = {
   ko: ["오늘의 미션은 무엇인가요?", "성장을 위한 한 걸음, 무엇을 할까요?", "지루함을 깨뜨릴 오늘의 스케줄을 적어주세요.", "미래의 나에게 부끄럽지 않을 계획을 세웁시다.", "작은 목표가 모여 전설을 만듭니다.", "오늘 하루, 어떤 멋진 일들을 계획하고 있나요?", "기록하는 순간, 목표는 이미 현실에 한 걸음 다가섭니다.", "어제보다 더 나은 오늘을 위한 당신만의 계획!", "성공적인 하루의 시작, 명확한 목표 설정부터!", "작은 성취들이 모여 눈부신 미래를 완성합니다."],
@@ -90,6 +90,9 @@ const QUOTES = [
   { ko: "성공은 최종적인 것이 아니며, 실패는 치명적인 것이 아니다. 중요한 것은 계속하려는 용기이다. - 윈스턴 처칠", en: "Success is not final, failure is not fatal: it is the courage to continue that counts. - Winston Churchill" },
   { ko: "위대한 일을 할 수 없다면 작은 일을 위대하게 하라. - 나폴레옹 힐", en: "If you cannot do great things, do small things in a great way. - Napoleon Hill" }
 ];
+const API_URL = '/api/todo';
+const COMMON_URL = '/api/items';
+
 function TodoPage({ lang, timerMode, setTimerMode, timerTime, setTimerTime, timerIsRunning, setTimerIsRunning }) {
   const [todos, setTodos] = useState([]);
   const [title, setTitle] = useState(''); const [importance, setImportance] = useState('보통'); const [todoDeadline, setTodoDeadline] = useState('');
@@ -97,7 +100,7 @@ function TodoPage({ lang, timerMode, setTimerMode, timerTime, setTimerTime, time
   const [inputs, setInputs] = useState({ h: '', m: '', s: '' }); const [editingId, setEditingId] = useState(null); const [editForm, setEditForm] = useState({});
   const [viewType, setViewType] = useState('list'); const [currentPage, setCurrentPage] = useState(1); const itemsPerPage = 8;
   const [now, setNow] = useState(new Date()); const [isAlertEnabled, setIsAlertEnabled] = useState(true); const [tourIndex, setTourIndex] = useState(-1);
-  const [showVersionInfo, setShowVersionInfo] = useState(false); const [showModalConfetti, setShowModalConfetti] = useState(false);
+  const [showVersionInfo, setShowVersionInfo] = useState(false);
   const [searchTerm, setSearchTerm] = useState(''); 
   const [dragItemIndex, setDragItemIndex] = useState(null);
   const [dragOverItemIndex, setDragOverItemIndex] = useState(null);
@@ -108,7 +111,7 @@ function TodoPage({ lang, timerMode, setTimerMode, timerTime, setTimerTime, time
   const [chatHistory, setChatHistory] = useState([]); 
   const [followUpInput, setFollowUpInput] = useState('');
   const chatContainerRef = useRef(null);
-  const API_URL = '/api/todo'; const COMMON_URL = '/api/items';
+  const showModalConfetti = showVersionInfo;
   const t = {
     ko: {
       tourSteps: [
@@ -171,10 +174,21 @@ function TodoPage({ lang, timerMode, setTimerMode, timerTime, setTimerTime, time
     if (diff < 2592000) return lang === 'ko' ? `${Math.floor(diff / 86400)}일 전` : `${Math.floor(diff / 86400)}d ago`;
     return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
   };
-  useEffect(() => { fetchTodos(); handleRandomize(); }, [])
+  const fetchTodos = useCallback(async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setTodos(res.data);
+    } catch {
+      return;
+    }
+  }, []);
+  const handleRandomize = useCallback(() => {
+    if (QUOTES.length > 0) setQuoteIndex(Math.floor(Math.random() * QUOTES.length));
+    setPlaceholderIndex(Math.floor(Math.random() * PLACEHOLDERS[lang].length));
+  }, [lang]);
+  useEffect(() => { fetchTodos(); handleRandomize(); }, [fetchTodos, handleRandomize])
   useEffect(() => { const intervalId = setInterval(() => setNow(new Date()), 50); return () => clearInterval(intervalId); }, []);
   useEffect(() => { const intervalId = setInterval(() => { setTitleMentionIndex(p => (p + 1) % TITLE_MENTIONS[lang].length); setPlaceholderIndex(p => (p + 1) % PLACEHOLDERS[lang].length); }, 6000); return () => clearInterval(intervalId); }, [lang]);
-  useEffect(() => { if (showVersionInfo) { setShowModalConfetti(true); setTimeout(() => setShowModalConfetti(false), 2500); } }, [showVersionInfo]);
   useEffect(() => { 
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -190,9 +204,7 @@ function TodoPage({ lang, timerMode, setTimerMode, timerTime, setTimerTime, time
         return () => el.classList.remove('ring-[6px]', 'ring-blue-500', 'ring-offset-2', 'dark:ring-offset-gray-900', 'z-[80]', 'transition-all', 'rounded-3xl'); 
       }
     }
-  }, [tourIndex, timerMode, lang, current.tourSteps]);
-  const fetchTodos = async () => { try { const res = await axios.get(API_URL); setTodos(res.data) } catch(e){} }
-  const handleRandomize = () => { if(QUOTES.length > 0) setQuoteIndex(Math.floor(Math.random() * QUOTES.length)); setPlaceholderIndex(Math.floor(Math.random() * PLACEHOLDERS[lang].length)); }
+  }, [tourIndex, timerMode, lang, current.tourSteps, setTimerMode]);
   const formatTime = (ms) => { const h = Math.floor(ms / 3600000); const m = Math.floor((ms % 3600000) / 60000); const s = Math.floor((ms % 60000) / 1000); const mi = Math.floor((ms % 1000) / 10); return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(mi).padStart(2,'0')}`; }
   const getRemainingTime = (deadline) => { if (!deadline) return null; const diff = new Date(deadline) - now; if (diff <= 0) return "EXPIRED"; return { days: Math.floor(diff/86400000), hours: Math.floor((diff/3600000)%24), mins: Math.floor((diff/60000)%60), secs: Math.floor((diff/1000)%60), ms: Math.floor((diff%1000)/10) }; }
   const addTodo = async (e) => { 

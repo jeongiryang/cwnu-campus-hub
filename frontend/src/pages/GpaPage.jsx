@@ -20,7 +20,7 @@ function GpaPage({ lang }) {
   const [editForm, setEditForm] = useState({});
   const [showVersionInfo, setShowVersionInfo] = useState(false); 
   const [showSecurityInfo, setShowSecurityInfo] = useState(false);
-  const [showModalConfetti, setShowModalConfetti] = useState(false);
+  const showModalConfetti = showVersionInfo;
   const [simTargetGpa, setSimTargetGpa] = useState(4.0);
   const [simNextCredits, setSimNextCredits] = useState(18);
   const t = {
@@ -103,7 +103,6 @@ function GpaPage({ lang }) {
   };
   const current = t[lang];
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(courses)); }, [courses]);
-  useEffect(() => { if (showVersionInfo) { setShowModalConfetti(true); setTimeout(() => setShowModalConfetti(false), 2500); } }, [showVersionInfo]);
   useEffect(() => {
     if (tourIndex >= 0 && tourIndex < current.tourSteps.length) {
       const el = document.getElementById(current.tourSteps[tourIndex].targetId);
