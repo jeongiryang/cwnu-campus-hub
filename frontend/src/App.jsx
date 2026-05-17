@@ -1,16 +1,28 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, Link, useLocation } from 'react-router-dom';
 import MainPage from './pages/MainPage';
 import TodoPage from './pages/TodoPage';
 import GpaPage from './pages/GpaPage';
+import { campusLinksById, getCampusLinkLabel } from './data/campusLinks';
+
+const getMonthDays = (year, monthIndex) => {
+  const firstDay = new Date(year, monthIndex, 1).getDay();
+  const lastDate = new Date(year, monthIndex + 1, 0).getDate();
+  return [
+    ...Array.from({ length: firstDay }, () => null),
+    ...Array.from({ length: lastDate }, (_, index) => index + 1)
+  ];
+};
 
 const formatDateTime = (langCode, is12Hour) => {
   const now = new Date();
   const year = now.getFullYear();
+  const monthIndex = now.getMonth();
   const month = String(now.getMonth() + 1).padStart(2, '0');
-  const date = String(now.getDate()).padStart(2, '0');
+  const dateNum = now.getDate();
+  const date = String(dateNum).padStart(2, '0');
   const dayIndex = now.getDay();
-  const dayOfWeek = langCode === 'ko'
+  const dayName = langCode === 'ko'
     ? ['일', '월', '화', '수', '목', '금', '토'][dayIndex]
     : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayIndex];
   
@@ -22,14 +34,16 @@ const formatDateTime = (langCode, is12Hour) => {
   const displayHours = is12Hour ? (hours % 12 || 12) : hours;
   
   return {
+    year,
+    monthIndex,
+    dateNum,
+    dayIndex,
     dateStr: `${year}. ${month}. ${date}`,
-    dayStr: `(${dayOfWeek})`,
+    dayStr: `(${dayName})`,
+    dayName,
     isWeekend: dayIndex === 0 || dayIndex === 6,
     ampm: is12Hour ? ampm : '',
-    timeStr: `${String(displayHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`,
-    hDeg: ((hours % 12) * 30) + (minutes * 0.5),
-    mDeg: (minutes * 6) + (seconds * 0.1),
-    sDeg: seconds * 6
+    timeStr: `${String(displayHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
   };
 };
 
@@ -54,12 +68,8 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('cwnu_dark_mode') === 'true');
   const [lang, setLang] = useState(() => localStorage.getItem('cwnu_lang') || 'ko');
   const [is12Hour, setIs12Hour] = useState(() => localStorage.getItem('cwnu_is12Hour') === 'true');
+  const [isDatePanelOpen, setIsDatePanelOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(null);
-  const [clockAngles, setClockAngles] = useState({ h: 0, m: 0, s: 0 });
-  
-  const displayedAnglesRef = useRef({ h: 0, m: 0, s: 0 });
-  const prevRawAnglesRef = useRef({ h: 0, m: 0, s: 0 });
-  const isInitializedRef = useRef(false);
 
   useEffect(() => {
     localStorage.setItem('cwnu_is12Hour', is12Hour);
@@ -83,39 +93,6 @@ function App() {
     const updateDateTime = () => {
       const result = formatDateTime(lang, is12Hour);
       setCurrentDateTime(result);
-
-      const targetS = result.sDeg;
-      const targetM = result.mDeg;
-      const targetH = result.hDeg;
-
-      if (!isInitializedRef.current) {
-        displayedAnglesRef.current = { h: targetH, m: targetM, s: targetS };
-        prevRawAnglesRef.current = { h: targetH, m: targetM, s: targetS };
-        setClockAngles({ h: targetH, m: targetM, s: targetS });
-        isInitializedRef.current = true;
-        return;
-      }
-
-      let diffS = targetS - prevRawAnglesRef.current.s;
-      if (diffS < -180) diffS += 360; 
-      else if (diffS > 180) diffS -= 360;
-
-      let diffM = targetM - prevRawAnglesRef.current.m;
-      if (diffM < -180) diffM += 360;
-      else if (diffM > 180) diffM -= 360;
-
-      let diffH = targetH - prevRawAnglesRef.current.h;
-      if (diffH < -180) diffH += 360;
-      else if (diffH > 180) diffH -= 360;
-
-      prevRawAnglesRef.current = { h: targetH, m: targetM, s: targetS };
-      displayedAnglesRef.current = {
-        h: displayedAnglesRef.current.h + diffH,
-        m: displayedAnglesRef.current.m + diffM,
-        s: displayedAnglesRef.current.s + diffS
-      };
-
-      setClockAngles({ ...displayedAnglesRef.current });
     };
 
     updateDateTime();
@@ -152,92 +129,146 @@ function App() {
   };
 
   const t = {
-    ko: { todo: "TODO", gpa: "GPA 계산기", copykiller: "카피킬러↗", food: "학식↗", lib: " 도서관↗", insta: "📸 인스타" },
-    en: { todo: "TODO", gpa: "GPA Calc", copykiller: "CopyKiller↗", food: "Food↗", lib: " Library↗", insta: "📸 Insta" }
+    ko: {
+      todo: "TODO",
+      gpa: "GPA 계산기",
+      tagline: "학생용 캠퍼스 허브",
+      today: "오늘",
+      calendar: "캘린더",
+      academicSchedule: "학사일정",
+      openSchedule: "학사일정 열기",
+      timeMode: "시간 형식",
+      close: "닫기"
+    },
+    en: {
+      todo: "TODO",
+      gpa: "GPA Calc",
+      tagline: "Student campus hub",
+      today: "Today",
+      calendar: "Calendar",
+      academicSchedule: "Academic Schedule",
+      openSchedule: "Open Schedule",
+      timeMode: "Time Format",
+      close: "Close"
+    }
   };
+  const currentText = t[lang] || t.ko;
+  const academicScheduleLink = campusLinksById['academic-calendar'];
+  const calendarDays = currentDateTime ? getMonthDays(currentDateTime.year, currentDateTime.monthIndex) : [];
+  const weekdayLabels = lang === 'ko'
+    ? ['일', '월', '화', '수', '목', '금', '토']
+    : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark' : ''} bg-white dark:bg-gray-900 transition-colors font-sans`}>
-     <header className="bg-[#002f6c] dark:bg-gray-950 text-white p-3 md:p-5 shadow-lg flex flex-col md:flex-row justify-between items-center transition-colors sticky top-0 z-[170] gap-3 md:gap-0">
-        <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
-          <h1 className="text-xl md:text-2xl font-black tracking-tighter cursor-pointer" onClick={() => navigate('/')}>
-            CWNU PORTAL <span className="text-red-500 italic ml-1 md:ml-2 text-sm md:text-base animate-[pulse_2s_ease-in-out_infinite] opacity-90"></span>
-          </h1>
-          <div className="flex gap-2">
-            <button onClick={() => setLang(lang === 'ko' ? 'en' : 'ko')} className="p-2 md:p-2.5 rounded-xl bg-white/10 border-2 border-white/20 text-white font-black text-[10px] md:text-xs hover:bg-white/20 transition-all">
-              {lang === 'ko' ? '🌐 ENG' : '🌐 KOR'}
+      <header className="sticky top-0 z-[170] border-b border-white/10 bg-[#002f6c]/95 text-white shadow-lg shadow-blue-950/10 backdrop-blur-xl transition-colors dark:bg-gray-950/95">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8 md:flex-row md:items-center md:justify-between">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <button type="button" onClick={() => navigate('/')} className="group flex min-w-0 items-center gap-3 text-left">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-sm font-black shadow-inner shadow-white/10 transition group-hover:bg-white/15">CH</span>
+              <span className="min-w-0">
+                <span className="block truncate text-lg font-black tracking-tight sm:text-xl">CWNU Campus Hub</span>
+                <span className="block text-[10px] font-bold uppercase tracking-[0.24em] text-blue-100/70">{currentText.tagline}</span>
+              </span>
             </button>
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className="md:hidden p-2 bg-white/10 rounded-full border-2 border-white/20">{isDarkMode ? '☀️' : '🌙'}</button>
-          </div>
-        </div>
-
-        {location.pathname !== '/' && (
-          <nav className="flex items-center gap-1 md:gap-4 bg-black/20 p-1 md:p-1.5 rounded-2xl">
-            <Link to="/todo" className={getMenuClass('/todo')}>📝 <span className="hidden sm:inline">{t[lang].todo}</span><span className="sm:hidden text-[10px]">{t[lang].todo}</span></Link>
-            <Link to="/gpa" className={getMenuClass('/gpa')}>🎓 <span className="hidden sm:inline">{t[lang].gpa}</span><span className="sm:hidden text-[10px]">GPA</span></Link>
-          </nav>
-        )}
-
-        <div className="flex gap-2 md:gap-3 items-center w-full md:w-auto justify-center md:justify-end">
-          {currentDateTime && (
-            <div 
-              onClick={() => setIs12Hour(!is12Hour)}
-              className="hidden lg:flex items-center gap-4 mr-6 px-5 py-2 rounded-2xl transition hover:bg-white/10 group cursor-pointer border border-white/5 active:scale-95"
-            >
-              <div className="relative w-12 h-12 flex items-center justify-center rounded-full border-2 border-emerald-400 text-white shadow-[0_0_15px_rgba(52,211,153,0.2)] transition-all group-hover:scale-110">
-                <div 
-                  className="absolute top-[12px] left-[22.5px] w-[3px] h-[12px] bg-amber-400 rounded-full" 
-                  style={{ transform: `rotate(${clockAngles.h}deg)`, transformOrigin: 'bottom center', transition: 'transform 1s linear' }}
-                ></div>
-                <div 
-                  className="absolute top-[5px] left-[23px] w-[2px] h-[19px] bg-sky-300 rounded-full" 
-                  style={{ transform: `rotate(${clockAngles.m}deg)`, transformOrigin: 'bottom center', transition: 'transform 1s linear' }}
-                ></div>
-                <div 
-                  className="absolute top-[3px] left-[23.5px] w-[1px] h-[21px] bg-red-500 rounded-full" 
-                  style={{ transform: `rotate(${clockAngles.s}deg)`, transformOrigin: 'bottom center', transition: 'transform 1s linear' }}
-                ></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 z-10 shadow-sm border border-black/10"></div>
-              </div>
-
-              <div className="flex flex-col text-right font-mono tracking-tighter">
-                <span className="text-lg text-white/60 font-bold leading-tight">
-                  {currentDateTime.dateStr} 
-                  <span className={currentDateTime.isWeekend ? 'text-red-400 ml-1' : 'text-white/60 ml-1'}>
-                    {currentDateTime.dayStr}
-                  </span>
-                </span>
-                <span className="text-2xl text-white font-black leading-none mt-0.5 drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)] flex items-end justify-end gap-1">
-                  {currentDateTime.ampm && (
-                    <span className="text-[11px] font-bold mr-1 mb-[1px] tracking-normal font-sans opacity-90">
-                      {currentDateTime.ampm}
-                    </span>
-                  )}
-                  <span>{currentDateTime.timeStr}</span>
-                </span>
-              </div>
+            <div className="flex items-center gap-2 md:hidden">
+              <button onClick={() => setLang(lang === 'ko' ? 'en' : 'ko')} className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[10px] font-black text-white shadow-sm transition hover:bg-white/20">
+                {lang === 'ko' ? 'ENG' : 'KOR'}
+              </button>
+              <button onClick={() => setIsDarkMode(!isDarkMode)} className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs shadow-sm transition hover:bg-white/20">{isDarkMode ? '☀️' : '🌙'}</button>
             </div>
-          )}
-          
-          <a href="https://changwongrad.copykiller.com/welcome" target="_blank" rel="noreferrer" className="bg-[#be123c] text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded-xl font-black text-[10px] md:text-xs shadow-md flex items-center gap-1.5 hover:bg-[#9f1239] transition">
-            📝 {t[lang].copykiller}
-          </a>
-          <a href="https://app.changwon.ac.kr/campus/campus_001.do" target="_blank" rel="noreferrer" className="bg-[#634432] text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded-xl font-black text-[10px] md:text-xs shadow-md flex items-center gap-1.5 hover:bg-[#4d3527] transition">
-            {t[lang].food}
-          </a>
-          <a href="https://lib.changwon.ac.kr/" target="_blank" rel="noreferrer" className="bg-[#059669] text-white px-2.5 py-1.5 md:px-4 md:py-2 rounded-xl font-black text-[10px] md:text-xs shadow-md flex items-center gap-1.5 hover:bg-[#047857] transition">
-            {t[lang].lib}
-          </a>
-          <a href="https://www.instagram.com/cwnu_official/?mi=18361" target="_blank" rel="noreferrer" className="p-1.5 md:p-2 rounded-full text-white/80 hover:text-white hover:bg-[#d946ef] transition-all shadow-sm group">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 group-hover:scale-110 transition-transform">
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-            </svg>
-          </a>
-          <button onClick={() => setIsDarkMode(!isDarkMode)} className="hidden md:block p-2 md:p-2.5 rounded-full bg-white dark:bg-gray-700 border-2 border-gray-100 dark:border-gray-600 text-gray-400 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 shadow-sm transition-all duration-300">
-            {isDarkMode ? '☀️' : '🌙'}
-          </button>
+          </div>
+
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 md:justify-end">
+            {location.pathname !== '/' && (
+              <nav className="flex items-center gap-1 rounded-full border border-white/10 bg-black/15 p-1 shadow-inner shadow-black/10">
+                <Link to="/todo" className={getMenuClass('/todo')}>📝 <span className="hidden sm:inline">{currentText.todo}</span><span className="sm:hidden text-[10px]">{currentText.todo}</span></Link>
+                <Link to="/gpa" className={getMenuClass('/gpa')}>🎓 <span className="hidden sm:inline">{currentText.gpa}</span><span className="sm:hidden text-[10px]">GPA</span></Link>
+              </nav>
+            )}
+
+            <div className="relative min-w-0">
+              {currentDateTime && (
+                <button
+                  type="button"
+                  onClick={() => setIsDatePanelOpen((prev) => !prev)}
+                  className="flex min-w-0 items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-left shadow-sm transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  aria-expanded={isDatePanelOpen}
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-xs font-black text-[#002f6c] shadow-sm">⌁</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[11px] font-black text-blue-100">{currentDateTime.dateStr} {currentDateTime.dayStr}</span>
+                    <span className="block truncate font-mono text-sm font-black leading-tight text-white sm:text-base">
+                      {currentDateTime.ampm && <span className="mr-1 font-sans text-[10px] opacity-80">{currentDateTime.ampm}</span>}
+                      {currentDateTime.timeStr}
+                    </span>
+                  </span>
+                </button>
+              )}
+
+              {currentDateTime && isDatePanelOpen && (
+                <div className="absolute left-0 top-[calc(100%+0.75rem)] z-[220] w-[min(22rem,calc(100vw-2rem))] rounded-[1.5rem] border border-gray-100 bg-white p-4 text-gray-900 shadow-2xl shadow-blue-950/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white md:left-auto md:right-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-blue-600 dark:text-blue-300">{currentText.calendar}</p>
+                      <h2 className="mt-1 text-xl font-black">{currentDateTime.dateStr}</h2>
+                      <p className={`text-sm font-bold ${currentDateTime.isWeekend ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>{currentText.today} {currentDateTime.dayStr}</p>
+                    </div>
+                    <button type="button" onClick={() => setIsDatePanelOpen(false)} className="rounded-full bg-gray-100 px-3 py-1 text-[11px] font-black text-gray-500 transition hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">{currentText.close}</button>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl bg-gray-50 p-3 dark:bg-gray-800/80">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-gray-500 dark:text-gray-400">{currentText.timeMode}</span>
+                      <button type="button" onClick={() => setIs12Hour((prev) => !prev)} className="rounded-full bg-white px-3 py-1.5 text-[11px] font-black text-[#002f6c] shadow-sm transition hover:bg-blue-50 dark:bg-gray-900 dark:text-blue-300 dark:hover:bg-gray-700">
+                        {is12Hour ? '12H' : '24H'}
+                      </button>
+                    </div>
+                    <div className="mt-3 font-mono text-3xl font-black tracking-tight text-[#002f6c] dark:text-blue-200">
+                      {currentDateTime.ampm && <span className="mr-2 font-sans text-xs text-gray-400">{currentDateTime.ampm}</span>}
+                      {currentDateTime.timeStr}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-7 gap-1 text-center">
+                    {weekdayLabels.map((day, index) => (
+                      <span key={`${day}-${index}`} className="py-1 text-[10px] font-black text-gray-400">{day}</span>
+                    ))}
+                    {calendarDays.map((day, index) => (
+                      <span
+                        key={`${day || 'blank'}-${index}`}
+                        className={`flex aspect-square items-center justify-center rounded-xl text-xs font-black ${
+                          day === currentDateTime.dateNum
+                            ? 'bg-[#002f6c] text-white shadow-sm dark:bg-blue-500'
+                            : day
+                              ? 'bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+                              : 'bg-transparent'
+                        }`}
+                      >
+                        {day || ''}
+                      </span>
+                    ))}
+                  </div>
+
+                  {academicScheduleLink && (
+                    <a href={academicScheduleLink.url} target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-between rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-black text-[#002f6c] transition hover:border-blue-300 dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-200">
+                      <span>{getCampusLinkLabel(academicScheduleLink, lang)}</span>
+                      <span className="text-[11px] text-blue-500 dark:text-blue-300">{currentText.openSchedule} ↗</span>
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="hidden items-center gap-2 md:flex">
+              <button onClick={() => setLang(lang === 'ko' ? 'en' : 'ko')} className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-black text-white shadow-sm transition hover:bg-white/20">
+                {lang === 'ko' ? 'ENG' : 'KOR'}
+              </button>
+              <button onClick={() => setIsDarkMode(!isDarkMode)} className="rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs shadow-sm transition hover:bg-white/20">
+                {isDarkMode ? '☀️' : '🌙'}
+              </button>
+            </div>
+          </div>
         </div>
       </header>
       <main>
