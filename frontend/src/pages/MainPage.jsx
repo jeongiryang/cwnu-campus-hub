@@ -94,13 +94,11 @@ function MainPage({ lang }) {
       tourSteps: [
         { title: "👋 반가워요!", desc: "창원대 포털의 주요 기능을 안내해 드릴게요.", targetId: "tour-main-header" },
         { title: "🍚 학식 서랍", desc: "왼쪽의 버튼을 누르면 오늘 학식이 짠! 하고 나타납니다.", targetId: "tour-side-btns" },
-        { title: "🚀 핵심 서비스", desc: "중고마켓, 분실물 등 대학생활 꿀기능 4대장입니다.", targetId: "tour-main-services" },
+        { title: "🚀 학업 도구", desc: "ToDo와 학점계산기를 한곳에서 바로 사용할 수 있습니다.", targetId: "tour-main-services" },
         { title: "🔗 퀵 버튼 (8칸)", desc: "학우님들이 자주 찾는 사이트 8개를 한곳에 모았습니다.", targetId: "tour-main-shortcuts" }
       ],
       tourSkip: "건너뛰기", tourNext: "다음 ▶", tourEnd: "종료 🎉",
       services: [
-        { title: "중고 마켓", desc: "학우들과 즐겁게 물건을 나누세요.", icon: "🏪", path: "/market", color: "from-blue-600 to-indigo-700" },
-        { title: "분실물 센터", desc: "잃어버린 물건, 창대인이 함께 찾아요.", icon: "🔍", path: "/lost", color: "from-orange-500 to-red-600" },
         { title: "ToDo List", desc: "집중 타이머와 함께 일정을 관리하세요.", icon: "📝", path: "/todo", color: "from-indigo-600 to-purple-700" },
         { title: "학점 계산기", desc: "실시간 그래프로 성적을 분석하세요.", icon: "🎓", path: "/gpa", color: "from-emerald-600 to-teal-700" }
       ],
@@ -124,13 +122,11 @@ function MainPage({ lang }) {
       tourSteps: [
         { title: "👋 Welcome!", desc: "Let me guide you through the main features of the CWNU Portal.", targetId: "tour-main-header" },
         { title: "🍚 Meal Drawer", desc: "Click the buttons on the left to see today's campus meals!", targetId: "tour-side-btns" },
-        { title: "🚀 Core Services", desc: "These are the 4 main features like Market and Lost & Found.", targetId: "tour-main-services" },
+        { title: "🚀 Study Tools", desc: "Use ToDo and GPA tools from one place.", targetId: "tour-main-services" },
         { title: "🔗 Quick Links", desc: "We've gathered 8 frequently visited sites in one place.", targetId: "tour-main-shortcuts" }
       ],
       tourSkip: "Skip", tourNext: "Next ▶", tourEnd: "Close 🎉",
       services: [
-        { title: "Flea Market", desc: "Share items happily with peers.", icon: "🏪", path: "/market", color: "from-blue-600 to-indigo-700" },
-        { title: "Lost & Found", desc: "Let's find lost items together.", icon: "🔍", path: "/lost", color: "from-orange-500 to-red-600" },
         { title: "ToDo List", desc: "Manage tasks with a focus timer.", icon: "📝", path: "/todo", color: "from-indigo-600 to-purple-700" },
         { title: "GPA Calc", desc: "Analyze grades with real-time graphs.", icon: "🎓", path: "/gpa", color: "from-emerald-600 to-teal-700" }
       ],
@@ -326,7 +322,7 @@ function MainPage({ lang }) {
           </div>
           <p className="text-gray-500 dark:text-gray-400 font-bold text-base md:text-lg">{current.subtitle}</p>
         </div>
-        <div id="tour-main-services" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-12 md:mb-20">
+        <div id="tour-main-services" className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 mb-12 md:mb-20 max-w-4xl mx-auto w-full">
           {current.services.map((s, idx) => (
             <Link key={idx} to={s.path} className="group relative overflow-hidden bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 border-2 border-gray-50 dark:border-gray-700 flex flex-col items-center text-center">
               <div className={`absolute top-0 left-0 w-full h-2 bg-gradient-to-r ${s.color}`}></div>
