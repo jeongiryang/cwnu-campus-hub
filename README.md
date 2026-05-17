@@ -60,6 +60,33 @@
 
 루트에는 통합 `package.json`이 없음. 프론트엔드와 백엔드는 각각의 하위 폴더에서 의존성을 설치하고 실행함.
 
+자세한 로컬 실행과 검증 흐름은 [docs/local-development.md](docs/local-development.md)에 정리함.
+
+### 로컬 실행 요약
+
+프론트엔드:
+
+```bash
+npm --prefix frontend install
+npm --prefix frontend run dev
+npm --prefix frontend run build
+```
+
+백엔드:
+
+```bash
+npm --prefix backend install
+npm --prefix backend run dev
+npm --prefix backend start
+node --check backend/index.js
+```
+
+프론트엔드만 실행하면 `/api/food` 요청에서 Vite proxy error `ECONNREFUSED`가 출력될 수 있음. 백엔드를 함께 실행하면 해결됨.
+
+`MONGODB_URI`, `GEMINI_API_KEY` 같은 실제 환경변수 값은 문서에 작성하지 않음. 필요한 변수명은 `backend/.env.example`에서 확인함.
+
+`npm install` 후 vulnerabilities 경고가 출력될 수 있음. `npm audit fix`는 자동 실행하지 않고 별도 보안 점검에서 다룸.
+
 ### Frontend
 
 ```bash
